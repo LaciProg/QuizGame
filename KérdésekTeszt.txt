@@ -1,0 +1,8 @@
+Igen@1
+Nem@2
+#
+Ez körte?@Igen@Nem@Nem tudom@3
+Ez banán?@Igen@Nem@Nem tudom@2
+Ez alma?@Igen@Nem@Nem tudom@1
+#
+Szereted a tejet@Igen@Nem@A kakót is!@Kecske@Attila@3
