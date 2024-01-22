@@ -12,6 +12,7 @@ public class Init {
     private final ArrayList<Player> playerList = new ArrayList<>();
     private final ArrayList<ArrayList<String>> questions = new ArrayList<>();
 
+
     ArrayList<File> pictures = new ArrayList<>();
     {
         for (int i = 0; i < 3; i++) {
@@ -39,17 +40,9 @@ public class Init {
         try {
             FileReader fileReader = new FileReader(file);
             Scanner scanner = new Scanner(fileReader);
-            String line;
 
             while (scanner.hasNextLine()){
-                line = scanner.nextLine();
-                if(line.contains("#")){
-                    Collections.shuffle(questions.get(count));
-                    count++;
-                }
-                else{
-                    questions.get(count).add(line);
-                }
+                count = readIn(scanner, count);
 
             }
 
@@ -57,6 +50,19 @@ public class Init {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private int readIn(Scanner scanner, int count) {
+        String line;
+        line = scanner.nextLine();
+        if(line.contains("#")){
+            Collections.shuffle(questions.get(count));
+            count++;
+        }
+        else{
+            questions.get(count).add(line);
+        }
+        return count;
     }
 
     public void addPictures(){
@@ -78,11 +84,11 @@ public class Init {
     }
 
     public boolean checkPlayer(){
-       return (playerList.size() > 0);
+       return (!playerList.isEmpty());
     }
 
     public boolean checkQuestions(){
-        return (questions.size() == 3 && questions.get(0).size() > 0 && questions.get(1).size() > 0 && questions.get(2).size() > 0 && pictures.size() > 0);
+        return (questions.size() == 3 && !questions.get(0).isEmpty() && !questions.get(1).isEmpty() && !questions.get(2).isEmpty() && !pictures.isEmpty());
     }
 
     public ArrayList<ArrayList<String>> getQuestions() {

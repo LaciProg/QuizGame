@@ -111,64 +111,16 @@ public class Board implements Serializable {
 
     synchronized public void move() throws InterruptedException {
 
-        while (players.get(currentPlayer).getFinished()) {
-            next();
-        }
-
-        table.defaultInstruction();
-        table.setCurrentPlayer(players.get(currentPlayer).getName());
-
-        fields.get(players.get(currentPlayer).getLevel() - 1).get(players.get(currentPlayer).getField() - 1).setPlayerOnField(players.get(currentPlayer));
-        level = field = 0;
-        if (!extraMove) {
-            roll = 0;
-            table.rollEnabled();
-            while (roll == 0) {
-                Thread.onSpinWait();
-            }
-        }
-
-        players.get(currentPlayer).setMovement(roll);
-        if (!extraMove || extraMovePlus) {
-            while (!(players.get(currentPlayer).getLevel() == level) || !(abs(players.get(currentPlayer).getField() - field) == players.get(currentPlayer).getMovement())) {  }
-        }
-        else{
-            while (!(players.get(currentPlayer).getLevel() == level) || !(field-(players.get(currentPlayer).getField()) == players.get(currentPlayer).getMovement())) {  }
-        }
-
-        extraMove = extraMovePlus = false;
-        players.get(currentPlayer).setMovement(0);
-
-        fields.get(level-1).get(field-1).action(this);
-
-        fields.get(players.get(currentPlayer).getLevel()-1).get(players.get(currentPlayer).getField()-1).setDefault();
-        players.get(currentPlayer).setField(field);
-        players.get(currentPlayer).setLevel(level);
-        wait(1000);
-        fields.get(players.get(currentPlayer).getLevel()-1).get(players.get(currentPlayer).getField()-1).setDefault();
-
-
-
-        while (turn == Turn.NO) {
-        }
-        if (turn == Turn.NEXT){
-            if(players.get(currentPlayer).equals(players.get(players.size()-1))){
-                inGameScoreBoard();
-            }
-            next();
-        }
+        while (players.get(currentPlayer).getFinished()) {next();}
+        playerMoveHandle();
+        while (turn == Turn.NO) {}
+        if (turn == Turn.NEXT){nextTurn();}
         else if(turn == Turn.LEVELUP){
             players.get(currentPlayer).setLevel(players.get(currentPlayer).getLevel()+1);
             players.get(currentPlayer).setField(1);
-            if(players.get(currentPlayer).equals(players.get(players.size()-1))){
-                inGameScoreBoard();
-            }
-            next();
+            nextTurn();
         }
-        else if(turn == Turn.END){
-
-        }
-
+        else if(turn == Turn.END){}
 
         turn = Turn.NO;
         try {
@@ -177,6 +129,59 @@ public class Board implements Serializable {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private void playerMoveHandle() throws InterruptedException {
+        moveInit();
+        diceRoll();
+        playerMove();
+        setChanges();
+    }
+
+    private void nextTurn() {
+        if(players.get(currentPlayer).equals(players.get(players.size()-1))){
+            inGameScoreBoard();
+        }
+        next();
+    }
+
+    private void setChanges() throws InterruptedException {
+        fields.get(level-1).get(field-1).action(this);
+
+        fields.get(players.get(currentPlayer).getLevel()-1).get(players.get(currentPlayer).getField()-1).setDefault();
+        players.get(currentPlayer).setField(field);
+        players.get(currentPlayer).setLevel(level);
+        wait(1000);
+        fields.get(players.get(currentPlayer).getLevel()-1).get(players.get(currentPlayer).getField()-1).setDefault();
+    }
+
+    private void moveInit() {
+        table.defaultInstruction();
+        table.setCurrentPlayer(players.get(currentPlayer).getName());
+        fields.get(players.get(currentPlayer).getLevel() - 1).get(players.get(currentPlayer).getField() - 1).setPlayerOnField(players.get(currentPlayer));
+        level = field = 0;
+    }
+
+    private void playerMove() {
+        players.get(currentPlayer).setMovement(roll);
+        if (!extraMove || extraMovePlus) {
+            while (!(players.get(currentPlayer).getLevel() == level) || !(abs(players.get(currentPlayer).getField() - field) == players.get(currentPlayer).getMovement())) {  }
+        }
+        else{
+            while (!(players.get(currentPlayer).getLevel() == level) || !(field-(players.get(currentPlayer).getField()) == players.get(currentPlayer).getMovement())) {  }
+        }
+        extraMove = extraMovePlus = false;
+        players.get(currentPlayer).setMovement(0);
+    }
+
+    private void diceRoll() {
+        if (!extraMove) {
+            roll = 0;
+            table.rollEnabled();
+            while (roll == 0) {
+                Thread.onSpinWait();
+            }
+        }
     }
 
     private void saveData() throws IOException {
@@ -193,7 +198,7 @@ public class Board implements Serializable {
         Comparator<Player> comparator = new LevelComparator();
         sortedPlayers.sort(comparator);
         Collections.reverse(sortedPlayers);
-        if(players.size()>0)
+        if(!players.isEmpty())
             message ="<html>" + sortedPlayers.get(0).getName() + " " + sortedPlayers.get(0).getLevel() + " " + sortedPlayers.get(0).getField()+ "<br>";
         if(players.size()>1)
             message += sortedPlayers.get(1).getName() + " " + sortedPlayers.get(1).getLevel() + " " + sortedPlayers.get(1).getField()+ "<br>";
